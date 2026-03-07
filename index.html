@@ -6,163 +6,37 @@
     <title>Jadwal Piket Marbot Masjid</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            padding: 20px; 
-            max-width: 650px; 
-            margin: auto; 
-            background-color: #f0f7f4; 
-        }
-        .container {
-            background-color: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border-top: 5px solid #2e7d32; 
-        }
-        h2 {
-            text-align: center;
-            color: #1b5e20;
-            margin-bottom: 5px;
-            font-size: 22px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #555;
-            font-size: 16px;
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-        .tanggal-cetak {
-            text-align: center;
-            color: #777;
-            font-size: 14px;
-            margin-bottom: 20px;
-            display: none; 
-        }
-        .menu-pilihan {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 20px;
-            background-color: #e8f5e9;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #c8e6c9;
-        }
-        select {
-            padding: 8px 12px;
-            font-size: 16px;
-            border-radius: 4px;
-            border: 1px solid #2e7d32;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 650px; margin: auto; background-color: #f0f7f4; }
+        .container { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-top: 5px solid #2e7d32; position: relative;}
+        h2 { text-align: center; color: #1b5e20; margin-bottom: 5px; font-size: 22px; }
+        .subtitle { text-align: center; color: #555; font-size: 16px; margin-top: 0; margin-bottom: 20px; font-weight: bold; }
+        .tanggal-cetak { text-align: center; color: #777; font-size: 14px; margin-bottom: 20px; display: none; }
         
-        .flex-table {
-            width: 100%;
-            border-top: 1px solid #ddd;
-            border-left: 1px solid #ddd;
-            border-right: 1px solid #ddd;
-            margin-top: 10px;
-            border-radius: 4px 4px 0 0;
-            overflow: hidden;
-        }
-        .flex-row {
-            display: flex;
-            width: 100%;
-            border-bottom: 1px solid #ddd;
-            box-sizing: border-box;
-        }
-        .flex-header {
-            background-color: #2e7d32;
-            color: white;
-            font-weight: bold;
-        }
-        .flex-cell {
-            flex: 1; 
-            width: 50%;
-            padding: 12px; 
-            display: flex;
-            flex-direction: column;
-            box-sizing: border-box;
-            word-wrap: break-word;
-        }
-        .flex-cell:first-child {
-            border-right: 1px solid #ddd;
-        }
+        .menu-pilihan { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px; background-color: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #c8e6c9; }
+        select { padding: 8px 12px; font-size: 16px; border-radius: 4px; border: 1px solid #2e7d32; cursor: pointer; font-weight: bold; }
+        
+        .flex-table { width: 100%; border-top: 1px solid #ddd; border-left: 1px solid #ddd; border-right: 1px solid #ddd; margin-top: 10px; border-radius: 4px 4px 0 0; overflow: hidden; }
+        .flex-row { display: flex; width: 100%; border-bottom: 1px solid #ddd; box-sizing: border-box; }
+        .flex-header { background-color: #2e7d32; color: white; font-weight: bold; }
+        .flex-cell { flex: 1; width: 50%; padding: 12px; display: flex; flex-direction: column; box-sizing: border-box; word-wrap: break-word; }
+        .flex-cell:first-child { border-right: 1px solid #ddd; }
+        .label-piket { margin-bottom: 8px; font-size: 15px; color: #1b5e20; }
+        
+        .input-nama, .input-tugas { width: 100%; flex-grow: 1; min-height: 30px; padding: 8px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; background-color: #fafafa; resize: none; font-family: inherit; }
+        .input-nama { text-align: center; font-weight: bold; }
+        .input-tugas { text-align: left; }
+        .input-nama:focus, .input-tugas:focus { outline: none; border-color: #2e7d32; background-color: #fff; }
 
-        .label-piket {
-            margin-bottom: 8px; 
-            font-size: 15px;
-            color: #1b5e20;
-        }
-
-        .input-nama, .input-tugas {
-            width: 100%;
-            flex-grow: 1; 
-            min-height: 30px; 
-            padding: 8px; 
-            font-size: 14px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            background-color: #fafafa;
-            resize: none; 
-            font-family: inherit;
-        }
-        .input-nama {
-            text-align: center; 
-            font-weight: bold;
-        }
-        .input-tugas {
-            text-align: left;
-        }
-        .input-nama:focus, .input-tugas:focus {
-            outline: none;
-            border-color: #2e7d32;
-            background-color: #fff;
-        }
-
-        .grup-tombol {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 25px;
-        }
-        button { 
-            padding: 14px 15px; 
-            font-size: 16px; 
-            border: none; 
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-            color: white;
-        }
+        .grup-tombol { display: flex; flex-direction: column; gap: 10px; margin-top: 25px; }
+        button { padding: 14px 15px; font-size: 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; color: white; }
         .btn-rotate { background-color: #4CAF50; }
         .btn-rotate:hover { background-color: #388E3C; }
         .btn-wa { background-color: #25D366; }
         .btn-wa:hover { background-color: #1ebe57; }
-
-        .nama-teks {
-            font-size: 16px;
-            padding: 10px 0;
-            display: block;
-            font-weight: bold;
-            text-align: center;
-            line-height: 1.5; 
-        }
-        .tugas-teks {
-            font-size: 14px;
-            text-align: left; 
-        }
-        .tugas-teks ul {
-            margin: 0;
-            padding-left: 20px;
-        }
+        
+        .nama-teks { font-size: 16px; padding: 10px 0; display: block; font-weight: bold; text-align: center; line-height: 1.5; }
+        .tugas-teks { font-size: 14px; text-align: left; }
+        .tugas-teks ul { margin: 0; padding-left: 20px; }
     </style>
 </head>
 <body>
@@ -200,29 +74,62 @@
     </div>
 
     <script>
-        // Data Bawaan (Hanya dipakai saat web dibuka pertama kali di HP/Browser baru)
-        const defaultPiket = [
-            "K. Muhlis", "Munir", "K. Syarif", "K. Fahril", "K. Anis", "K. Rizky", "Handika"
-        ];
+        const API_URL = "https://script.google.com/macros/s/AKfycbwdbFm2pkzTLRxrtKAqlk3xcwTPF9QQqIHg8C8eGGS7ufHJVJ3DJ2L6lRT-6yrYWDEA6A/exec";
+        let daftarPiket = [];
+        let daftarTugas = [];
 
+        // Data Default (Jika Database kosong)
+        const defaultPiket = ["K. Muhlis", "Munir", "K. Syarif", "K. Fahril", "K. Anis", "K. Rizky", "Handika"];
         const defaultTugas = [
-            "Sapu dan Pel saf Ikhwan\nBersihkan Mimbar",
-            "Sapu dan Pel saf akhwat\nWC akhwat",
-            "Sapu dan Pel teras",
-            "Halaman Masjid Selatan\nBersihkan dapur",
-            "Halaman Masjid Utara",
-            "Masak\nWc Ikhwan",
-            "Cupir Pagi & Sore",
-            "Tugas Tambahan / Bebas" 
+            "Sapu dan Pel saf Ikhwan\nBersihkan Mimbar", "Sapu dan Pel saf akhwat\nWC akhwat", "Sapu dan Pel teras",
+            "Halaman Masjid Selatan\nBersihkan dapur", "Halaman Masjid Utara", "Masak\nWc Ikhwan", "Cupir Pagi & Sore", "Tugas Tambahan / Bebas"
         ];
 
-        // Memuat data dari memori (jika ada)
-        let daftarPiket = JSON.parse(localStorage.getItem("dataPiketMarbot")) || [...defaultPiket];
-        let daftarTugas = JSON.parse(localStorage.getItem("dataTugasMarbot")) || [...defaultTugas];
+        // 1. Fungsi Mengambil Data dari Google Sheets saat Web Dibuka
+        async function ambilDataDariDatabase() {
+            try {
+                const respons = await fetch(API_URL);
+                const data = await respons.json();
+                
+                if (data.nama && data.tugas) {
+                    daftarPiket = data.nama;
+                    daftarTugas = data.tugas;
+                } else {
+                    daftarPiket = [...defaultPiket];
+                    daftarTugas = [...defaultTugas];
+                }
+                perbaruiTampilan();
+            } catch (error) {
+                console.error("Gagal ambil data:", error);
+                // Jika gagal internet, pakai memori lokal sebagai cadangan
+                daftarPiket = JSON.parse(localStorage.getItem("dataPiketMarbot")) || [...defaultPiket];
+                daftarTugas = JSON.parse(localStorage.getItem("dataTugasMarbot")) || [...defaultTugas];
+                perbaruiTampilan();
+            }
+        }
 
-        function simpanKeMemori() {
+        // 2. Fungsi Menyimpan Data ke Google Sheets (Diam-diam di background)
+        let timerSimpan;
+        function simpanKeDatabase() {
+            // Simpan ke local storage juga sebagai backup
             localStorage.setItem("dataPiketMarbot", JSON.stringify(daftarPiket));
             localStorage.setItem("dataTugasMarbot", JSON.stringify(daftarTugas));
+            
+            clearTimeout(timerSimpan);
+            timerSimpan = setTimeout(async () => {
+                try {
+                    await fetch(API_URL, {
+                        redirect: "follow", 
+                        method: 'POST',
+                        headers: {
+                            "Content-Type": "text/plain;charset=utf-8", 
+                        },
+                        body: JSON.stringify({ nama: daftarPiket, tugas: daftarTugas })
+                    });
+                } catch (error) {
+                    console.error("Gagal simpan ke database:", error);
+                }
+            }, 1000); 
         }
 
         function perbaruiTampilan() {
@@ -251,28 +158,23 @@
 
         function simpanNama(index, nilaiBaru) { 
             daftarPiket[index] = nilaiBaru; 
-            simpanKeMemori();
+            simpanKeDatabase(); 
         }
         function simpanTugas(index, nilaiBaru) { 
             daftarTugas[index] = nilaiBaru; 
-            simpanKeMemori();
+            simpanKeDatabase();
         }
 
         function sesuaikanJumlah() {
             const targetJumlah = parseInt(document.getElementById("pilihJumlah").value);
-            
             while (daftarPiket.length < targetJumlah) { 
                 daftarPiket.unshift(""); 
-                if (daftarTugas.length < targetJumlah) {
-                    daftarTugas.push("");
-                }
+                if (daftarTugas.length < targetJumlah) { daftarTugas.push(""); }
             }
-            while (daftarPiket.length > targetJumlah) { 
-                daftarPiket.pop(); 
-            }
+            while (daftarPiket.length > targetJumlah) { daftarPiket.pop(); }
             
-            simpanKeMemori();
             perbaruiTampilan();
+            simpanKeDatabase();
         }
 
         function putarGiliran() {
@@ -280,8 +182,8 @@
                 const orangTerakhir = daftarPiket.pop();
                 daftarPiket.unshift(orangTerakhir);
                 
-                simpanKeMemori();
                 perbaruiTampilan();
+                simpanKeDatabase();
             }
         }
 
@@ -340,36 +242,24 @@
 
                 canvas.toBlob(async (blob) => {
                     const file = new File([blob], "Jadwal_Marbot.png", { type: "image/png" });
-
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        try {
-                            await navigator.share({
-                                title: 'Jadwal Marbot',
-                                text: 'Berikut adalah jadwal piket marbot terbaru Masjid Mushab bin Umair:',
-                                files: [file]
-                            });
-                        } catch (error) {
-                            console.log('Batal membagikan', error);
-                        }
+                        try { await navigator.share({ title: 'Jadwal Marbot', text: 'Jadwal piket terbaru:', files: [file] }); } 
+                        catch (error) { console.log('Batal', error); }
                     } else {
                         const link = document.createElement('a');
-                        link.download = 'Jadwal_Marbot.png';
-                        link.href = canvas.toDataURL("image/png");
-                        link.click();
-                        alert("Gambar berhasil diunduh! Silakan kirim manual via WA.");
+                        link.download = 'Jadwal_Marbot.png'; link.href = canvas.toDataURL("image/png"); link.click();
+                        alert("Gambar berhasil diunduh!");
                     }
                 });
             } catch (err) {
-                console.error("Gagal membuat gambar:", err);
+                console.error("Gagal memotret:", err);
                 perbaruiTampilan();
-                document.getElementById("areaMenu").style.display = "flex";
-                document.getElementById("areaTombol").style.display = "flex";
-                tgl.style.display = "none";
+                document.getElementById("areaMenu").style.display = "flex"; document.getElementById("areaTombol").style.display = "flex"; tgl.style.display = "none";
             }
         }
 
-        // Panggil pertama kali
-        perbaruiTampilan();
+        // Panggil fungsi koneksi ke Database saat pertama kali dibuka
+        ambilDataDariDatabase();
     </script>
 </body>
 </html>

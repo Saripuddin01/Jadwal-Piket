@@ -400,6 +400,372 @@
     </script>
 </body>
 </html>
+        .tanggal-cetak {
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none; 
+        }
+        .menu-pilihan {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #c8e6c9;
+        }
+        select {
+            padding: 8px 12px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #2e7d32;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .flex-table {
+            width: 100%;
+            border-top: 1px solid #ddd;
+            border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            margin-top: 10px;
+            border-radius: 4px 4px 0 0;
+            overflow: hidden;
+        }
+        .flex-row {
+            display: flex;
+            width: 100%;
+            border-bottom: 1px solid #ddd;
+            box-sizing: border-box;
+        }
+        .flex-header {
+            background-color: #2e7d32;
+            color: white;
+            font-weight: bold;
+        }
+        .flex-cell {
+            flex: 1; 
+            width: 50%;
+            padding: 12px; 
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            word-wrap: break-word;
+        }
+        .flex-cell:first-child {
+            border-right: 1px solid #ddd;
+        }
+
+        .label-piket {
+            margin-bottom: 8px; 
+            font-size: 15px;
+            color: #1b5e20;
+        }
+
+        .input-nama, .input-tugas {
+            width: 100%;
+            flex-grow: 1; 
+            min-height: 30px; 
+            padding: 8px; 
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #fafafa;
+            resize: none; 
+            font-family: inherit;
+        }
+        .input-nama {
+            text-align: center; 
+            font-weight: bold;
+        }
+        .input-tugas {
+            text-align: left;
+        }
+        .input-nama:focus, .input-tugas:focus {
+            outline: none;
+            border-color: #2e7d32;
+            background-color: #fff;
+        }
+
+        .grup-tombol {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        button { 
+            padding: 14px 15px; 
+            font-size: 16px; 
+            border: none; 
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            color: white;
+        }
+        .btn-rotate { background-color: #4CAF50; }
+        .btn-rotate:hover { background-color: #388E3C; }
+        .btn-wa { background-color: #25D366; }
+        .btn-wa:hover { background-color: #1ebe57; }
+        
+        .btn-reset { 
+            background-color: #f44336; 
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 14px;
+        }
+        .btn-reset:hover { background-color: #d32f2f; }
+
+        .nama-teks {
+            font-size: 16px;
+            padding: 10px 0;
+            display: block;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.5; 
+        }
+        .tugas-teks {
+            font-size: 14px;
+            text-align: left; 
+        }
+        .tugas-teks ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="areaCetak">
+        <h2>🕌 Jadwal Piket Harian Marbot</h2>
+        <p class="subtitle">Masjid Mushab bin Umair FT UNM</p>
+        <p class="tanggal-cetak" id="tanggalCetak"></p>
+        
+        <div class="menu-pilihan" id="areaMenu">
+            <label for="pilihJumlah"><strong>Jumlah Marbot:</strong></label>
+            <select id="pilihJumlah" onchange="sesuaikanJumlah()">
+                <option value="3">3 Orang</option>
+                <option value="4">4 Orang</option>
+                <option value="5">5 Orang</option>
+                <option value="6">6 Orang</option>
+                <option value="7">7 Orang</option>
+                <option value="8">8 Orang</option>
+            </select>
+        </div>
+ 
+            
+        <div class="flex-table">
+            <div class="flex-row flex-header">
+                <div class="flex-cell" style="text-align: center;justify-content: center; align-items: center;">Rincian Tugas</div>
+                <div class="flex-cell" style="text-align: center; justify-content: center; align-items: center;">Nama Marbot</div>
+            </div>
+            <div id="tabelPiket">
+                </div>
+        </div>
+
+        <div class="grup-tombol" id="areaTombol">
+            <button class="btn-rotate" onclick="putarGiliran()">Putar Giliran Piket Selanjutnya &raquo;</button>
+            <button class="btn-wa" onclick="bagikanKeWA()">&#128247; Bagikan ke WA (Gambar)</button>
+            <button class="btn-reset" onclick="resetKeAwal()">🔄 Reset ke Pengaturan Awal</button>
+        </div>
+    </div>
+
+    <script>
+        // Data Bawaan (Default)
+        const defaultPiket = [
+            "K. Muhlis", "Munir", "K. Syarif", "K. Fahril", "K. Anis", "K. Rizky", "Handika"
+        ];
+
+        const defaultTugas = [
+            "Sapu dan Pel saf Ikhwan\nBersihkan Mimbar",
+            "Sapu dan Pel saf akhwat\nWC akhwat",
+            "Sapu dan Pel teras",
+            "Halaman Masjid Selatan\nBersihkan dapur",
+            "Halaman Masjid Utara",
+            "Masak\nWc Ikhwan",
+            "Cupir Pagi & Sore",
+            "Tugas Tambahan / Bebas" 
+        ];
+
+        // Mengecek apakah ada data yang tersimpan di memori HP/Browser
+        // Jika ada, gunakan data tersebut. Jika tidak, gunakan data bawaan.
+        let daftarPiket = JSON.parse(localStorage.getItem("dataPiketMarbot")) || [...defaultPiket];
+        let daftarTugas = JSON.parse(localStorage.getItem("dataTugasMarbot")) || [...defaultTugas];
+
+        // Fungsi untuk menyimpan data terbaru ke memori HP/Browser
+        function simpanKeMemori() {
+            localStorage.setItem("dataPiketMarbot", JSON.stringify(daftarPiket));
+            localStorage.setItem("dataTugasMarbot", JSON.stringify(daftarTugas));
+        }
+
+        function perbaruiTampilan() {
+            const tbody = document.getElementById("tabelPiket");
+            tbody.innerHTML = ""; 
+
+            daftarPiket.forEach((nama, index) => {
+                // Pastikan tugas untuk index ini ada (mencegah error kalau nambah orang)
+                let tugasTeks = daftarTugas[index] || "";
+
+                const baris = `
+                <div class="flex-row">
+                    <div class="flex-cell">
+                        <div class="label-piket"><strong>Piket ${index + 1}</strong></div>
+                        <textarea class="input-tugas" oninput="simpanTugas(${index}, this.value)" placeholder="Ketik rincian tugas...">${tugasTeks}</textarea>
+                    </div>
+                    <div class="flex-cell">
+                        <div class="label-piket" style="visibility: hidden;"><strong>Piket ${index + 1}</strong></div>
+                        <textarea class="input-nama" oninput="simpanNama(${index}, this.value)" placeholder="Ketik nama marbot...">${nama}</textarea>
+                    </div>
+                </div>`;
+                tbody.innerHTML += baris;
+            });
+            
+            document.getElementById("pilihJumlah").value = daftarPiket.length;
+        }
+
+        // Menyimpan saat diketik & Simpan ke Memori
+        function simpanNama(index, nilaiBaru) { 
+            daftarPiket[index] = nilaiBaru; 
+            simpanKeMemori();
+        }
+        function simpanTugas(index, nilaiBaru) { 
+            daftarTugas[index] = nilaiBaru; 
+            simpanKeMemori();
+        }
+
+        function sesuaikanJumlah() {
+            const targetJumlah = parseInt(document.getElementById("pilihJumlah").value);
+            
+            while (daftarPiket.length < targetJumlah) { 
+                daftarPiket.unshift(""); 
+                // Kita juga perlu menggeser tugas atau menambah slot tugas kosong jika diperlukan
+                if (daftarTugas.length < targetJumlah) {
+                    daftarTugas.push("");
+                }
+            }
+            while (daftarPiket.length > targetJumlah) { 
+                daftarPiket.pop(); 
+            }
+            
+            simpanKeMemori();
+            perbaruiTampilan();
+        }
+
+        function putarGiliran() {
+            if (daftarPiket.length > 0) {
+                const orangTerakhir = daftarPiket.pop();
+                daftarPiket.unshift(orangTerakhir);
+                
+                simpanKeMemori();
+                perbaruiTampilan();
+            }
+        }
+
+        function resetKeAwal() {
+            const konfirmasi = confirm("Apakah Anda yakin ingin mereset jadwal kembali ke pengaturan awal? Semua perubahan yang tersimpan akan hilang.");
+            if (konfirmasi) {
+                localStorage.removeItem("dataPiketMarbot");
+                localStorage.removeItem("dataTugasMarbot");
+                daftarPiket = [...defaultPiket];
+                daftarTugas = [...defaultTugas];
+                perbaruiTampilan();
+                alert("Jadwal telah direset.");
+            }
+        }
+
+        function formatTugasCetak(teks) {
+            if (!teks || teks.trim() === "") return "-";
+            const barisTeks = teks.split('\n').filter(b => b.trim() !== '');
+            if (barisTeks.length === 1) return barisTeks[0];
+            return "<ul>" + barisTeks.map(b => `<li>${b}</li>`).join('') + "</ul>";
+        }
+
+        function formatNamaCetak(nama) {
+            if (!nama || nama.trim() === "") return "-";
+            return nama.replace(/\n/g, "<br>");
+        }
+
+        function siapkanTampilanCetak() {
+            const tbody = document.getElementById("tabelPiket");
+            tbody.innerHTML = ""; 
+
+            daftarPiket.forEach((nama, index) => {
+                const namaTampil = formatNamaCetak(nama);
+                const tugasTampil = formatTugasCetak(daftarTugas[index] || "");
+                
+                const baris = `
+                <div class="flex-row">
+                    <div class="flex-cell">
+                        <div class="label-piket"><strong>Piket ${index + 1}</strong></div>
+                        <div class="tugas-teks">${tugasTampil}</div>
+                    </div>
+                    <div class="flex-cell" style="justify-content: center; align-items: center;">
+                        <span class="nama-teks">${namaTampil}</span>
+                    </div>
+                </div>`;
+                tbody.innerHTML += baris;
+            });
+        }
+
+        async function bagikanKeWA() {
+            siapkanTampilanCetak();
+            document.getElementById("areaMenu").style.display = "none";
+            document.getElementById("areaTombol").style.display = "none";
+            
+            const tgl = document.getElementById("tanggalCetak");
+            tgl.innerText = "Diperbarui: " + new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            tgl.style.display = "block";
+
+            const areaCetak = document.getElementById("areaCetak");
+
+            try {
+                const canvas = await html2canvas(areaCetak, { scale: 2 }); 
+
+                perbaruiTampilan();
+                document.getElementById("areaMenu").style.display = "flex";
+                document.getElementById("areaTombol").style.display = "flex";
+                tgl.style.display = "none";
+
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], "Jadwal_Marbot.png", { type: "image/png" });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({
+                                title: 'Jadwal Marbot',
+                                text: 'Berikut adalah jadwal piket marbot terbaru Masjid Mushab bin Umair:',
+                                files: [file]
+                            });
+                        } catch (error) {
+                            console.log('Batal membagikan', error);
+                        }
+                    } else {
+                        const link = document.createElement('a');
+                        link.download = 'Jadwal_Marbot.png';
+                        link.href = canvas.toDataURL("image/png");
+                        link.click();
+                        alert("Gambar berhasil diunduh! Silakan kirim manual via WA.");
+                    }
+                });
+            } catch (err) {
+                console.error("Gagal membuat gambar:", err);
+                perbaruiTampilan();
+                document.getElementById("areaMenu").style.display = "flex";
+                document.getElementById("areaTombol").style.display = "flex";
+                tgl.style.display = "none";
+            }
+        }
+
+        // Panggil pertama kali
+        perbaruiTampilan();
+    </script>
+</body>
+</html>
               
                 simpanKeMemori();
                 perbaruiTampilan();

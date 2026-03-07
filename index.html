@@ -191,10 +191,11 @@
                 <option value="8">8 Orang</option>
             </select>
         </div>
-
+ 
+            
         <div class="flex-table">
             <div class="flex-row flex-header">
-                <div class="flex-cell" style="text-align: center; justify-content: center; align-items: center;">Rincian Tugas</div>
+                <div class="flex-cell" style="text-align: center;justify-content: center; align-items: center;">Rincian Tugas</div>
                 <div class="flex-cell" style="text-align: center; justify-content: center; align-items: center;">Nama Marbot</div>
             </div>
             <div id="tabelPiket">
@@ -294,6 +295,112 @@
                 const orangTerakhir = daftarPiket.pop();
                 daftarPiket.unshift(orangTerakhir);
                 
+                simpanKeMemori();
+                perbaruiTampilan();
+            }
+        }
+
+        function resetKeAwal() {
+            const konfirmasi = confirm("Apakah Anda yakin ingin mereset jadwal kembali ke pengaturan awal? Semua perubahan yang tersimpan akan hilang.");
+            if (konfirmasi) {
+                localStorage.removeItem("dataPiketMarbot");
+                localStorage.removeItem("dataTugasMarbot");
+                daftarPiket = [...defaultPiket];
+                daftarTugas = [...defaultTugas];
+                perbaruiTampilan();
+                alert("Jadwal telah direset.");
+            }
+        }
+
+        function formatTugasCetak(teks) {
+            if (!teks || teks.trim() === "") return "-";
+            const barisTeks = teks.split('\n').filter(b => b.trim() !== '');
+            if (barisTeks.length === 1) return barisTeks[0];
+            return "<ul>" + barisTeks.map(b => `<li>${b}</li>`).join('') + "</ul>";
+        }
+
+        function formatNamaCetak(nama) {
+            if (!nama || nama.trim() === "") return "-";
+            return nama.replace(/\n/g, "<br>");
+        }
+
+        function siapkanTampilanCetak() {
+            const tbody = document.getElementById("tabelPiket");
+            tbody.innerHTML = ""; 
+
+            daftarPiket.forEach((nama, index) => {
+                const namaTampil = formatNamaCetak(nama);
+                const tugasTampil = formatTugasCetak(daftarTugas[index] || "");
+                
+                const baris = `
+                <div class="flex-row">
+                    <div class="flex-cell">
+                        <div class="label-piket"><strong>Piket ${index + 1}</strong></div>
+                        <div class="tugas-teks">${tugasTampil}</div>
+                    </div>
+                    <div class="flex-cell" style="justify-content: center; align-items: center;">
+                        <span class="nama-teks">${namaTampil}</span>
+                    </div>
+                </div>`;
+                tbody.innerHTML += baris;
+            });
+        }
+
+        async function bagikanKeWA() {
+            siapkanTampilanCetak();
+            document.getElementById("areaMenu").style.display = "none";
+            document.getElementById("areaTombol").style.display = "none";
+            
+            const tgl = document.getElementById("tanggalCetak");
+            tgl.innerText = "Diperbarui: " + new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            tgl.style.display = "block";
+
+            const areaCetak = document.getElementById("areaCetak");
+
+            try {
+                const canvas = await html2canvas(areaCetak, { scale: 2 }); 
+
+                perbaruiTampilan();
+                document.getElementById("areaMenu").style.display = "flex";
+                document.getElementById("areaTombol").style.display = "flex";
+                tgl.style.display = "none";
+
+                canvas.toBlob(async (blob) => {
+                    const file = new File([blob], "Jadwal_Marbot.png", { type: "image/png" });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({
+                                title: 'Jadwal Marbot',
+                                text: 'Berikut adalah jadwal piket marbot terbaru Masjid Mushab bin Umair:',
+                                files: [file]
+                            });
+                        } catch (error) {
+                            console.log('Batal membagikan', error);
+                        }
+                    } else {
+                        const link = document.createElement('a');
+                        link.download = 'Jadwal_Marbot.png';
+                        link.href = canvas.toDataURL("image/png");
+                        link.click();
+                        alert("Gambar berhasil diunduh! Silakan kirim manual via WA.");
+                    }
+                });
+            } catch (err) {
+                console.error("Gagal membuat gambar:", err);
+                perbaruiTampilan();
+                document.getElementById("areaMenu").style.display = "flex";
+                document.getElementById("areaTombol").style.display = "flex";
+                tgl.style.display = "none";
+            }
+        }
+
+        // Panggil pertama kali
+        perbaruiTampilan();
+    </script>
+</body>
+</html>
+              
                 simpanKeMemori();
                 perbaruiTampilan();
             }

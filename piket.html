@@ -6,7 +6,6 @@
     <title>Jadwal Piket Marbot Masjid</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* UKURAN LEGA (DIKEMBALIKAN SEPERTI SEMULA) */
         body { 
             font-family: Arial, sans-serif; 
             padding: 20px; 
@@ -62,45 +61,52 @@
             font-weight: bold;
         }
         
-        /* PENGATURAN TABEL 50:50 (JARAK SPASI LEGA) */
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 5px; 
-            table-layout: fixed; 
+        /* PENGATURAN LAYOUT BARU (ANTI BERANTAKAN DI HOSTING) */
+        .flex-table {
+            width: 100%;
+            border-top: 1px solid #ddd;
+            border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            margin-top: 10px;
+            border-radius: 4px 4px 0 0;
+            overflow: hidden;
         }
-        th, td { 
-            border: 1px solid #ddd; 
-            padding: 12px; /* Dikembalikan ke 12px agar jarak tabel lega */
-            word-wrap: break-word; 
+        .flex-row {
+            display: flex;
+            width: 100%;
+            border-bottom: 1px solid #ddd;
+            box-sizing: border-box;
         }
-        th { 
-            background-color: #2e7d32; 
+        .flex-header {
+            background-color: #2e7d32;
             color: white;
-            width: 50%; 
+            font-weight: bold;
         }
-        td {
-            height: 1px; 
-            vertical-align: top;
-        }
-
-        .td-content {
+        .flex-cell {
+            flex: 1; /* Membagi ruang sama rata 50:50 */
+            width: 50%;
+            padding: 12px; /* Spasi lega */
             display: flex;
             flex-direction: column;
-            height: 100%;
+            box-sizing: border-box;
+            word-wrap: break-word;
         }
+        .flex-cell:first-child {
+            border-right: 1px solid #ddd;
+        }
+
         .label-piket {
-            margin-bottom: 8px; /* Dikembalikan ke 8px */
+            margin-bottom: 8px; 
             font-size: 15px;
             color: #1b5e20;
         }
 
-        /* --- BAGIAN INI SAJA YANG DIBUAT RAPAT & KOMPAK --- */
+        /* UKURAN KOTAK INPUT TETAP RAPAT & KOMPAK */
         .input-nama, .input-tugas {
             width: 100%;
             flex-grow: 1; 
-            min-height: 20px; /* Dibuat jauh lebih pendek/rapat dari versi asli yang 90px */
-            padding: 8px; /* Spasi di dalam kotak teks dikurangi agar rapat */
+            min-height: 30px; 
+            padding: 8px; 
             font-size: 14px;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -121,7 +127,6 @@
             border-color: #2e7d32;
             background-color: #fff;
         }
-        /* --------------------------------------------------- */
 
         .grup-tombol {
             display: flex;
@@ -181,16 +186,14 @@
             </select>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Rincian Tugas</th>
-                    <th>Nama Marbot</th>
-                </tr>
-            </thead>
-            <tbody id="tabelPiket">
-                </tbody>
-        </table>
+        <div class="flex-table">
+            <div class="flex-row flex-header">
+                <div class="flex-cell" style="text-align: left;">Rincian Tugas</div>
+                <div class="flex-cell" style="text-align: center; justify-content: center; align-items: center;">Nama Marbot</div>
+            </div>
+            <div id="tabelPiket">
+                </div>
+        </div>
 
         <div class="grup-tombol" id="areaTombol">
             <button class="btn-rotate" onclick="putarGiliran()">Putar Giliran Piket Selanjutnya &raquo;</button>
@@ -219,20 +222,17 @@
             tbody.innerHTML = ""; 
 
             daftarPiket.forEach((nama, index) => {
-                const baris = `<tr>
-                    <td>
-                        <div class="td-content">
-                            <div class="label-piket"><strong>Piket ${index + 1}</strong></div>
-                            <textarea class="input-tugas" oninput="simpanTugas(${index}, this.value)" placeholder="Ketik rincian tugas...">${daftarTugas[index]}</textarea>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="td-content">
-                            <div class="label-piket" style="visibility: hidden;"><strong>Piket ${index + 1}</strong></div>
-                            <textarea class="input-nama" oninput="simpanNama(${index}, this.value)" placeholder="Ketik nama marbot...">${nama}</textarea>
-                        </div>
-                    </td>
-                </tr>`;
+                const baris = `
+                <div class="flex-row">
+                    <div class="flex-cell">
+                        <div class="label-piket"><strong>Piket ${index + 1}</strong></div>
+                        <textarea class="input-tugas" oninput="simpanTugas(${index}, this.value)" placeholder="Ketik rincian tugas...">${daftarTugas[index]}</textarea>
+                    </div>
+                    <div class="flex-cell">
+                        <div class="label-piket" style="visibility: hidden;"><strong>Piket ${index + 1}</strong></div>
+                        <textarea class="input-nama" oninput="simpanNama(${index}, this.value)" placeholder="Ketik nama marbot...">${nama}</textarea>
+                    </div>
+                </div>`;
                 tbody.innerHTML += baris;
             });
             
@@ -259,15 +259,16 @@
                 const namaTampil = formatNamaCetak(nama);
                 const tugasTampil = formatTugasCetak(daftarTugas[index]);
                 
-                const baris = `<tr>
-                    <td>
+                const baris = `
+                <div class="flex-row">
+                    <div class="flex-cell">
                         <div class="label-piket"><strong>Piket ${index + 1}</strong></div>
                         <div class="tugas-teks">${tugasTampil}</div>
-                    </td>
-                    <td style="vertical-align: middle;">
+                    </div>
+                    <div class="flex-cell" style="justify-content: center; align-items: center;">
                         <span class="nama-teks">${namaTampil}</span>
-                    </td>
-                </tr>`;
+                    </div>
+                </div>`;
                 tbody.innerHTML += baris;
             });
         }

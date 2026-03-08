@@ -85,26 +85,36 @@
             "Halaman Masjid Selatan\nBersihkan dapur", "Halaman Masjid Utara", "Masak\nWc Ikhwan", "Cupir Pagi & Sore", "Tugas Tambahan / Bebas"
         ];
 
-        // 1. Fungsi Mengambil Data dari Google Sheets saat Web Dibuka
+        // 1. Fungsi Mengambil Data secara Instan + Background Sync
         async function ambilDataDariDatabase() {
+            // TAMPILKAN LANGSUNG DARI MEMORI HP (Instan 0 detik)
+            daftarPiket = JSON.parse(localStorage.getItem("dataPiketMarbot")) || [...defaultPiket];
+            daftarTugas = JSON.parse(localStorage.getItem("dataTugasMarbot")) || [...defaultTugas];
+            perbaruiTampilan(); 
+
+            // DIAM-DIAM CEK KE GOOGLE SHEETS
             try {
                 const respons = await fetch(API_URL);
                 const data = await respons.json();
                 
                 if (data.nama && data.tugas) {
-                    daftarPiket = data.nama;
-                    daftarTugas = data.tugas;
-                } else {
-                    daftarPiket = [...defaultPiket];
-                    daftarTugas = [...defaultTugas];
+                    // Jika data di Google beda dengan yang di HP, perbarui
+                    if(JSON.stringify(daftarPiket) !== JSON.stringify(data.nama) || 
+                       JSON.stringify(daftarTugas) !== JSON.stringify(data.tugas)) {
+                        
+                        daftarPiket = data.nama;
+                        daftarTugas = data.tugas;
+                        
+                        perbaruiTampilan(); // Update layar
+                        
+                        // Simpan yang terbaru ke memori HP
+                        localStorage.setItem("dataPiketMarbot", JSON.stringify(daftarPiket));
+                        localStorage.setItem("dataTugasMarbot", JSON.stringify(daftarTugas));
+                    }
                 }
-                perbaruiTampilan();
             } catch (error) {
-                console.error("Gagal ambil data:", error);
-                // Jika gagal internet, pakai memori lokal sebagai cadangan
-                daftarPiket = JSON.parse(localStorage.getItem("dataPiketMarbot")) || [...defaultPiket];
-                daftarTugas = JSON.parse(localStorage.getItem("dataTugasMarbot")) || [...defaultTugas];
-                perbaruiTampilan();
+                console.error("Gagal sinkronisasi background:", error);
+                // Tidak perlu muncul alert, karena tabel sudah tampil dari memori HP
             }
         }
 

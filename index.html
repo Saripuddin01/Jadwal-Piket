@@ -75,55 +75,89 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbwdbFm2pkzTLRxrtKAqlk3xcwTPF9QQqIHg8C8eGGS7ufHJVJ3DJ2L6lRT-6yrYWDEA6A/exec";
-        let daftarPiket = [];
-        let daftarTugas = [];
-
-        // Data Default (Jika Database kosong)
+        
+        // Data Bawaan Pabrik
         const defaultPiket = ["K. Muhlis", "Munir", "K. Syarif", "K. Fahril", "K. Anis", "K. Rizky", "Handika"];
-        const defaultTugas = [
-            "Sapu dan Pel saf Ikhwan\nBersihkan Mimbar", "Sapu dan Pel saf akhwat\nWC akhwat", "Sapu dan Pel teras",
-            "Halaman Masjid Selatan\nBersihkan dapur", "Halaman Masjid Utara", "Masak\nWc Ikhwan", "Cupir Pagi & Sore", "Tugas Tambahan / Bebas"
-        ];
+        
+        const defaultTugas = {
+            "3": ["Bersihkan Area Dalam\nSapu & Pel", "Bersihkan Area Luar\nTeras & Halaman", "Bersihkan Toilet\nWC Ikhwan & Akhwat"],
+            "4": ["Sapu & Pel Saf Ikhwan", "Sapu & Pel Saf Akhwat", "Bersihkan Teras & Halaman", "WC Ikhwan & Akhwat"],
+            "5": ["Sapu & Pel Saf Ikhwan", "Sapu & Pel Saf Akhwat", "Bersihkan Teras", "Halaman & Parkiran", "WC Ikhwan & Akhwat"],
+            "6": ["Sapu & Pel Saf Ikhwan", "Sapu & Pel Saf Akhwat", "Bersihkan Teras", "Halaman Selatan", "Halaman Utara", "WC Ikhwan & Akhwat\nMasak"],
+            "7": ["Sapu dan Pel saf Ikhwan\nBersihkan Mimbar", "Sapu dan Pel saf akhwat\nWC akhwat", "Sapu dan Pel teras", "Halaman Masjid Selatan\nBersihkan dapur", "Halaman Masjid Utara", "Masak\nWc Ikhwan", "Cupir Pagi & Sore"],
+            "8": ["Sapu Saf Ikhwan", "Sapu Saf Akhwat", "Pel Area Dalam", "Bersihkan Teras", "Halaman Selatan", "Halaman Utara", "WC Ikhwan & Dapur", "WC Akhwat & Masak"]
+        };
 
-        // 1. Fungsi Mengambil Data secara Instan + Background Sync
+        // NAMA menyatu dalam 1 daftar. TUGAS terpisah sesuai jumlah.
+        let daftarPiket = []; 
+        let dbTugas = {};
+        let jumlahAktif = "7"; 
+
+        // 1. Fungsi Mengolah dan Memigrasi Data agar aman
+        function siapkanDataStore(dataNamaLuar, dataTugasLuar) {
+            // Mengurus Daftar Nama (Agar tetap menyatu)
+            if (Array.isArray(dataNamaLuar)) {
+                daftarPiket = [...dataNamaLuar];
+            } else if (dataNamaLuar && typeof dataNamaLuar === 'object') {
+                // Jika dari format kode sebelumnya, ambil dari slot 7 atau slot yang ada
+                daftarPiket = dataNamaLuar["7"] || dataNamaLuar["8"] || Object.values(dataNamaLuar)[0] || [...defaultPiket];
+            } else {
+                daftarPiket = [...defaultPiket];
+            }
+
+            // Mengurus Daftar Tugas (Agar tetap terpisah)
+            dbTugas = {};
+            if (dataTugasLuar && !Array.isArray(dataTugasLuar) && typeof dataTugasLuar === 'object') {
+                dbTugas = dataTugasLuar;
+            } else if (Array.isArray(dataTugasLuar)) {
+                dbTugas["7"] = [...dataTugasLuar]; // Migrasi dari format lama
+            }
+
+            // Pastikan setiap slot 3-8 memiliki data tugas (gabungkan dengan default jika kosong)
+            ["3", "4", "5", "6", "7", "8"].forEach(n => {
+                if (!dbTugas[n]) dbTugas[n] = [...defaultTugas[n]];
+                while(dbTugas[n].length < parseInt(n)) dbTugas[n].push("");
+            });
+
+            // Set jumlah aktif di dropdown sesuai jumlah nama saat ini
+            jumlahAktif = daftarPiket.length.toString();
+            if (parseInt(jumlahAktif) < 3) jumlahAktif = "3";
+            if (parseInt(jumlahAktif) > 8) jumlahAktif = "8";
+        }
+
+        // 2. Mengambil Data (Instan + Cek Background)
         async function ambilDataDariDatabase() {
-            // TAMPILKAN LANGSUNG DARI MEMORI HP (Instan 0 detik)
-            daftarPiket = JSON.parse(localStorage.getItem("dataPiketMarbot")) || [...defaultPiket];
-            daftarTugas = JSON.parse(localStorage.getItem("dataTugasMarbot")) || [...defaultTugas];
+            let lokalNama = JSON.parse(localStorage.getItem("dataPiketMarbot"));
+            let lokalTugas = JSON.parse(localStorage.getItem("dataTugasMarbot"));
+            
+            siapkanDataStore(lokalNama, lokalTugas);
             perbaruiTampilan(); 
 
-            // DIAM-DIAM CEK KE GOOGLE SHEETS
             try {
                 const respons = await fetch(API_URL);
                 const data = await respons.json();
                 
                 if (data.nama && data.tugas) {
-                    // Jika data di Google beda dengan yang di HP, perbarui
                     if(JSON.stringify(daftarPiket) !== JSON.stringify(data.nama) || 
-                       JSON.stringify(daftarTugas) !== JSON.stringify(data.tugas)) {
+                       JSON.stringify(dbTugas) !== JSON.stringify(data.tugas)) {
                         
-                        daftarPiket = data.nama;
-                        daftarTugas = data.tugas;
+                        siapkanDataStore(data.nama, data.tugas);
+                        perbaruiTampilan();
                         
-                        perbaruiTampilan(); // Update layar
-                        
-                        // Simpan yang terbaru ke memori HP
                         localStorage.setItem("dataPiketMarbot", JSON.stringify(daftarPiket));
-                        localStorage.setItem("dataTugasMarbot", JSON.stringify(daftarTugas));
+                        localStorage.setItem("dataTugasMarbot", JSON.stringify(dbTugas));
                     }
                 }
             } catch (error) {
                 console.error("Gagal sinkronisasi background:", error);
-                // Tidak perlu muncul alert, karena tabel sudah tampil dari memori HP
             }
         }
 
-        // 2. Fungsi Menyimpan Data ke Google Sheets (Diam-diam di background)
+        // 3. Menyimpan ke Google Sheets
         let timerSimpan;
         function simpanKeDatabase() {
-            // Simpan ke local storage juga sebagai backup
             localStorage.setItem("dataPiketMarbot", JSON.stringify(daftarPiket));
-            localStorage.setItem("dataTugasMarbot", JSON.stringify(daftarTugas));
+            localStorage.setItem("dataTugasMarbot", JSON.stringify(dbTugas));
             
             clearTimeout(timerSimpan);
             timerSimpan = setTimeout(async () => {
@@ -131,10 +165,8 @@
                     await fetch(API_URL, {
                         redirect: "follow", 
                         method: 'POST',
-                        headers: {
-                            "Content-Type": "text/plain;charset=utf-8", 
-                        },
-                        body: JSON.stringify({ nama: daftarPiket, tugas: daftarTugas })
+                        headers: { "Content-Type": "text/plain;charset=utf-8" },
+                        body: JSON.stringify({ nama: daftarPiket, tugas: dbTugas })
                     });
                 } catch (error) {
                     console.error("Gagal simpan ke database:", error);
@@ -142,12 +174,13 @@
             }, 1000); 
         }
 
+        // 4. Update Tampilan ke Layar
         function perbaruiTampilan() {
             const tbody = document.getElementById("tabelPiket");
             tbody.innerHTML = ""; 
 
             daftarPiket.forEach((nama, index) => {
-                let tugasTeks = daftarTugas[index] || "";
+                let tugasTeks = dbTugas[jumlahAktif][index] || "";
 
                 const baris = `
                 <div class="flex-row">
@@ -163,7 +196,7 @@
                 tbody.innerHTML += baris;
             });
             
-            document.getElementById("pilihJumlah").value = daftarPiket.length;
+            document.getElementById("pilihJumlah").value = jumlahAktif;
         }
 
         function simpanNama(index, nilaiBaru) { 
@@ -171,22 +204,29 @@
             simpanKeDatabase(); 
         }
         function simpanTugas(index, nilaiBaru) { 
-            daftarTugas[index] = nilaiBaru; 
+            dbTugas[jumlahAktif][index] = nilaiBaru; 
             simpanKeDatabase();
         }
 
+        // 5. Ubah Jumlah Marbot (LOGIKA TERBARU: Unshift & Pop Nama)
         function sesuaikanJumlah() {
             const targetJumlah = parseInt(document.getElementById("pilihJumlah").value);
+            jumlahAktif = targetJumlah.toString();
+            
+            // Jika nambah orang: Tambah kotak kosong di atas (Piket 1), yang lain turun ke bawah
             while (daftarPiket.length < targetJumlah) { 
                 daftarPiket.unshift(""); 
-                if (daftarTugas.length < targetJumlah) { daftarTugas.push(""); }
             }
-            while (daftarPiket.length > targetJumlah) { daftarPiket.pop(); }
+            // Jika ngurangi orang: Hapus orang dari paling bawah
+            while (daftarPiket.length > targetJumlah) { 
+                daftarPiket.pop(); 
+            }
             
             perbaruiTampilan();
             simpanKeDatabase();
         }
 
+        // 6. Putar Giliran Piket
         function putarGiliran() {
             if (daftarPiket.length > 0) {
                 const orangTerakhir = daftarPiket.pop();
@@ -197,6 +237,7 @@
             }
         }
 
+        // Fungsi Cetak (Sama seperti sebelumnya)
         function formatTugasCetak(teks) {
             if (!teks || teks.trim() === "") return "-";
             const barisTeks = teks.split('\n').filter(b => b.trim() !== '');
@@ -215,7 +256,7 @@
 
             daftarPiket.forEach((nama, index) => {
                 const namaTampil = formatNamaCetak(nama);
-                const tugasTampil = formatTugasCetak(daftarTugas[index] || "");
+                const tugasTampil = formatTugasCetak(dbTugas[jumlahAktif][index] || "");
                 
                 const baris = `
                 <div class="flex-row">
@@ -268,7 +309,7 @@
             }
         }
 
-        // Panggil fungsi koneksi ke Database saat pertama kali dibuka
+        // Panggil saat web terbuka
         ambilDataDariDatabase();
     </script>
 </body>
